@@ -1,0 +1,96 @@
+:root {
+  --primary: #007bff;
+  --bg: #f4f7f6;
+  --white: #ffffff;
+  --text: #333;
+  --error: #dc3545;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.auth-card {
+  background: var(--white);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 20px 0;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  display: block;
+}
+
+.primary-button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.error-text {
+  color: var(--error);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.dashboard-wrapper {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Ensure the Header content is centered or spread properly */
+.header-nav { 
+  display: flex; 
+  justify-content: center; /* Centers the Logo */
+  align-items: center; 
+  padding: 1.5rem 5%; 
+  background: #fff; 
+  border-bottom: 1px solid #eee;
+  position: relative;
+}
+
+/* If you want the logout button on the right while logo is centered */
+.user-controls {
+  position: absolute;
+  right: 5%;
+}
+
+/* Fix Footer centering */
+.footer-main { 
+  width: 100%;
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  padding: 2rem 0; 
+  color: #666;
+  background-color: transparent;
+}
