@@ -22,3 +22,6 @@ npm run dev
 node server.js 
 ```
 (in server)
+
+
+https://gemini.google.com/share/e92339414b72
