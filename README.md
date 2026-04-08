@@ -23,5 +23,7 @@ node server.js
 ```
 (in server)
 
+Hit Links:
 
 https://gemini.google.com/share/e92339414b72
+https://bit.ly/Solution-Challenge-2026
