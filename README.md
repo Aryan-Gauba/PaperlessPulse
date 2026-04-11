@@ -46,3 +46,7 @@ https://bit.ly/Solution-Challenge-2026
 ```
 https://chatgpt.com/gg/v/69d4a42770f8819581bb0f58ecfc848e?token=CRdxKVlQ6fNjVQcmlXf0jw
 ```
+canvas gemini - for all dashboards
+```
+https://gemini.google.com/share/2ed5c0f48588
+```
