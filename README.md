@@ -50,3 +50,7 @@ canvas gemini - for all dashboards
 ```
 https://gemini.google.com/share/2ed5c0f48588
 ```
+### Aryan - Individual Dashboard
+### Abhishek - NGO Dashboard
+### Nisha - Volunteer Dashboard
+### Kunal - Backend code for Google vision and its api
