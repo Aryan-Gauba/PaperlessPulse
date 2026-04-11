@@ -31,6 +31,11 @@ node server.js
 ```
 (in server)
 
+To run the client & server concurrently, type below command in root directory 
+```
+npm start
+```
+
 Hit Links:
 ```
 https://gemini.google.com/share/e92339414b72
