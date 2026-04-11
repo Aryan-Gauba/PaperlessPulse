@@ -13,8 +13,8 @@ cd ../server && npm install
 
 Create local .env: They must manually create a .env in the server folder with their own PostgreSQL credentials.
 ```
-DB_USER="postgres"
-DB_PASSWORD="Your_password"
+DB_USER="Your_Username"
+DB_PASSWORD="Your_Password"
 DB_HOST="localhost"
 DB_PORT="5432"
 DB_NAME="PaperlessPulse"
