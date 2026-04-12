@@ -1,7 +1,6 @@
--- 1. Create the Users Table
--- This handles the three stakeholders and stores the hashed passwords (once you implement hashing).
-
 -- SQL
+-- 1. Users Table
+-- Stores credentials and roles for NGO admins, volunteers, and individuals.
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -10,54 +9,35 @@ CREATE TABLE users (
     role VARCHAR(20) CHECK (role IN ('ngo', 'volunteer', 'individual')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- 2. Create the Surveys Table
--- This is where the "paper survey" data lives. We link it to a volunteer_id so you can track who collected the information.
 
--- SQL
+
+-- 2. Surveys Table
+-- Stores data submitted by volunteers and individuals.
+-- Includes a JSONB field for flexible OCR data or survey metadata.
 CREATE TABLE surveys (
-    id SERIAL PRIMARY KEY,
-    volunteer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    location VARCHAR(255) NOT NULL,
-    description TEXT,
-    contact_info VARCHAR(100),
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'processed')),
-    image_url TEXT, -- For storing the Google Vision/OCR source image link
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+id SERIAL PRIMARY KEY,
+user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+title VARCHAR(200) DEFAULT 'General Survey',
+description TEXT,
+location VARCHAR(255),
+metadata JSONB, -- Stores key-value pairs from OCR or form fields
+status VARCHAR(20) DEFAULT 'Processed',
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- 3. Create the Resources Table (Optional/Advanced)
--- If your project also tracks the inventory being sent out (food, medical supplies, etc.).
 
--- SQL
-CREATE TABLE resources (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    category VARCHAR(50),
-    quantity INTEGER DEFAULT 0,
-    managed_by_ngo_id INTEGER REFERENCES users(id),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- 3. Issues Table
+-- Specifically for the Individual Dashboard "Report Issue" feature.
+CREATE TABLE issues (
+id SERIAL PRIMARY KEY,
+user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+type VARCHAR(50) NOT NULL, -- e.g., 'Water Shortage', 'Medical'
+location VARCHAR(255) NOT NULL,
+description TEXT,
+priority VARCHAR(10) DEFAULT 'Medium',
+status VARCHAR(20) DEFAULT 'Pending', -- 'Pending', 'In Review', 'Resolved'
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- 4. Seed Data (For Testing)
--- Use these to populate your database so your UI isn't empty when you first run it. Note: Use a plain text password for now since your current logic doesn't have bcrypt yet.
 
--- SQL
--- Add one of each role
-INSERT INTO users (name, email, password, role) VALUES 
-('Delhi NGO Admin', 'admin@ngo.org', 'password123', 'ngo'),
-('Rahul Volunteer', 'rahul@gmail.com', 'password123', 'volunteer'),
-('Suresh Individual', 'suresh@outlook.com', 'password123', 'individual');
-
--- Add a dummy survey tied to the volunteer (ID 2)
-INSERT INTO surveys (volunteer_id, location, description, contact_info) VALUES 
-(2, 'Okhla Phase III', 'Paper survey: 50 families need clean water', '9876543210');
--- 5. Useful Maintenance Queries
--- Keep these handy for the hackathon to quickly reset or check your progress:
-
--- View all users: SELECT * FROM users;
-
--- Clear all surveys: TRUNCATE TABLE surveys RESTART IDENTITY;
-
--- Check surveys by a specific volunteer: ```sql
--- SELECT users.name, surveys.location
--- FROM surveys
--- JOIN users ON surveys.volunteer_id = users.id
--- WHERE users.role = 'volunteer';
+-- Optional: Indexing for faster queries based on user_id
+CREATE INDEX idx_surveys_user ON surveys(user_id);
+CREATE INDEX idx_issues_user ON issues(user_id);
