@@ -4,7 +4,7 @@ import { loginUser,
          getNGOdashboard,
          getVolunteerdashboard,
          getIndividualdashboard } from '../controllers/rootController.js'; 
-import authenticateToken from '../middlewares/authMiddleware.js'; 
+import {authenticateToken} from '../middlewares/authMiddleware.js'; 
 
 const router = express.Router(); 
 

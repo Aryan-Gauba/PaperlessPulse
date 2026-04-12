@@ -4,6 +4,7 @@
   "description": "Clone the repo:  ``` git clone https://github.com/yourusername/PaperlessPulse.git ```",
   "main": "index.js",
   "scripts": {
+    "prestart": "npx kill-port 5000 5173",
     "client": "npm run dev --prefix client",
     "server": "npm start --prefix server",
     "start": "concurrently \"npm run client\" \"npm run server\"",
@@ -12,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "kill-port": "^2.0.1"
   }
 }
