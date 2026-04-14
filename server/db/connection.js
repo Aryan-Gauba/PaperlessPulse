@@ -24,4 +24,4 @@ function connectDB() {
 });
 }
 
-export { connectDB }; 
+export { pool,connectDB }; 

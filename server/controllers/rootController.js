@@ -1,29 +1,33 @@
 import jwt from 'jsonwebtoken';
+import { pool } from '../db/connection.js'; // Ensure this path matches your structure
 
 async function loginUser(req, res) {
-const { email, role } = req.body;
-      try {
+    const { email, role, password } = req.body; // Added password here
+    try {
+        // Updated query to check password
         const result = await pool.query(
-          'SELECT * FROM users WHERE email = $1 AND role = $2', 
-          [email, role]
+            'SELECT * FROM users WHERE email = $1 AND role = $2 AND password = $3', 
+            [email, role, password]
         );
     
         if (result.rows.length > 0) {
-          const user = result.rows[0];
-          const token = jwt.sign(
-            { id: user.id, role: user.role }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '2h' }
-          );
-          res.json({ token, role: user.role, name: user.name });
+            const user = result.rows[0];
+            const token = jwt.sign(
+                { id: user.id, role: user.role }, 
+                process.env.JWT_SECRET, 
+                { expiresIn: '2h' }
+            );
+            res.json({ token, role: user.role, name: user.name });
         } else {
-          res.status(401).json({ message: "Invalid credentials" });
+            // This is likely why you saw "Authentication failed"
+            res.status(401).json({ message: "Invalid email, role, or password" });
         }
-      } catch (err) {
+    } catch (err) {
         res.status(500).json({ error: err.message });
-      }
+    }
 }
 
+// ... rest of your registerUser and dashboard functions
 async function registerUser(req, res) {
   const { name, email, role, password } = req.body; // In a real app, hash the password here!
   try {
