@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import MainLayout from "./layout/MainLayout";
+import Dashboard from "./Pages/Dashboard";
+import Issues from "./Pages/Issues";
+import Tasks from "./Pages/Tasks";
+import Volunteers from "./Pages/Volunteers";
+import Leaderboard from "./Pages/Leaderboard";
 
 export default function NGODashboard({ token }) {
+  
   const [view, setView] = useState('management'); // 'management' or 'surveys'
   const [surveys, setSurveys] = useState([]);
   const [volunteers] = useState([
@@ -19,9 +26,9 @@ export default function NGODashboard({ token }) {
     fetch('http://localhost:5000/api/dashboard/ngo', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    .then(res => res.json())
-    .then(data => setSurveys(data.data || []))
-    .catch(err => console.error("Fetch error:", err));
+      .then(res => res.json())
+      .then(data => setSurveys(data.data || []))
+      .catch(err => console.error("Fetch error:", err));
   }, [token]);
 
   const handleCreateTask = (e) => {
@@ -41,13 +48,13 @@ export default function NGODashboard({ token }) {
     <div className="ngo-dashboard">
       {/* Navigation Tabs */}
       <div className="dashboard-tabs">
-        <button 
+        <button
           className={`tab-btn ${view === 'management' ? 'active' : ''}`}
           onClick={() => setView('management')}
         >
           Strategic Command
         </button>
-        <button 
+        <button
           className={`tab-btn ${view === 'surveys' ? 'active' : ''}`}
           onClick={() => setView('surveys')}
         >
@@ -109,7 +116,7 @@ export default function NGODashboard({ token }) {
                         }}>Assign</button></td>
                       </tr>
                     )) : (
-                      <tr><td colSpan="4" style={{textAlign: 'center', padding: '40px', color: '#64748b'}}>No active field issues reported currently.</td></tr>
+                      <tr><td colSpan="4" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>No active field issues reported currently.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -129,8 +136,8 @@ export default function NGODashboard({ token }) {
                         {task.status}
                       </span>
                     </div>
-                    <button 
-                      className="delete-btn" 
+                    <button
+                      className="delete-btn"
                       onClick={() => handleDeleteTask(task.id)}
                       title="Remove Assignment"
                     >
@@ -185,23 +192,23 @@ export default function NGODashboard({ token }) {
             <form onSubmit={handleCreateTask}>
               <div className="input-group">
                 <label>Task Title</label>
-                <input 
+                <input
                   type="text" className="form-input" placeholder="e.g. Medical Kit Delivery" required
-                  value={newTask.title} onChange={e => setNewTask({...newTask, title: e.target.value})}
+                  value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })}
                 />
               </div>
               <div className="input-group">
                 <label>Location/Area</label>
-                <input 
+                <input
                   type="text" className="form-input" placeholder="e.g. Rohini Sector 7" required
-                  value={newTask.area} onChange={e => setNewTask({...newTask, area: e.target.value})}
+                  value={newTask.area} onChange={e => setNewTask({ ...newTask, area: e.target.value })}
                 />
               </div>
               <div className="input-group">
                 <label>Assign Volunteer</label>
-                <select 
+                <select
                   className="form-input" required
-                  value={newTask.assigned} onChange={e => setNewTask({...newTask, assigned: e.target.value})}
+                  value={newTask.assigned} onChange={e => setNewTask({ ...newTask, assigned: e.target.value })}
                 >
                   <option value="">Select a volunteer</option>
                   {volunteers.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
