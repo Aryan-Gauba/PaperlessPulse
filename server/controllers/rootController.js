@@ -82,14 +82,67 @@ async function getVolunteerdashboard(req, res) {
   }
 }
 
-async function getIndividualdashboard(req, res) {
+
+// Add this to your rootController.js exports
+export async function createIssue(req, res) {
+  const { type, location, description, priority } = req.body;
+  const userId = req.user.id; // From authenticateToken middleware
+
   try {
-    res.json({ 
+    const result = await pool.query(
+      'INSERT INTO issues (user_id, type, location, description, priority) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [userId, type, location, description, priority]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export const deleteIssue = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id; // From your authMiddleware
+
+    try {
+        const result = await pool.query(
+            "DELETE FROM issues WHERE id = $1 AND user_id = $2 RETURNING *",
+            [id, userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Report not found or unauthorized" });
+        }
+
+        res.status(200).json({ message: "Report deleted successfully" });
+    } catch (err) {
+        console.error("Delete Error:", err.message);
+        res.status(500).json({ error: "Server error during deletion" });
+    }
+};
+
+// Update your existing getIndividualdashboard function
+ async function getIndividualdashboard(req, res) {
+  const userId = req.user.id;
+  try {
+    // 1. Fetch reports filed by this specific user
+    const issues = await pool.query(
+      'SELECT * FROM issues WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+
+    // 2. Calculate simple stats for this user
+    const stats = {
+      totalIssues: issues.rowCount,
+      activeReports: issues.rows.filter(i => i.status !== 'Resolved').length
+    };
+
+    res.json({
       title: "Community Member Portal",
-      message: "View nearby resource distribution points." 
+      issues: issues.rows,
+      stats: stats
     });
   } catch (err) {
-    res.status(500).json(err.message);
+    res.status(500).json({ error: err.message });
   }
 }
 

@@ -305,11 +305,12 @@ export default function App() {
             </div>
           )
         ) : (
-          <div className="dashboard-container">
-             {user.role === 'ngo' && <NGODashboard token={user.token} />}
-             {user.role === 'volunteer' && <VolunteerDashboard token={user.token} />}
-             {user.role === 'individual' && <IndividualDashboard token={user.token} />}
-          </div>
+          // Inside App.jsx dashboard logic
+            <div className="dashboard-container">
+              {user.role === 'ngo' && <NGODashboard token={user.token} user={user} />}
+              {user.role === 'volunteer' && <VolunteerDashboard token={user.token} user={user} />}
+              {user.role === 'individual' && <IndividualDashboard token={user.token} user={user} />}
+            </div>
         )}
       </main>
 
