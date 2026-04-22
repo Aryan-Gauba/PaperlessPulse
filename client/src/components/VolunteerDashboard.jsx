@@ -33,8 +33,17 @@ export default function VolunteerDashboard() {
     formData.append('document', file); 
 
     try {
-        const token = localStorage.getItem('token');
+        const storedData = localStorage.getItem('user');
 
+        let token = ""; 
+        if (storedData) {
+            try {
+               const parsed = JSON.parse(storedData);
+               token = parsed.token; 
+            } catch (e) {
+               token = storedData; 
+    }
+        }
         const response = await fetch('http://localhost:5000/api/upload', {
             method: 'POST',
             headers : {
