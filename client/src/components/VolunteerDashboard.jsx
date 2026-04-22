@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 export default function VolunteerDashboard() {
   const [activeTab, setActiveTab] = useState('missions');
@@ -15,10 +15,52 @@ export default function VolunteerDashboard() {
     { rank: 3, name: "You", xp: "850 XP", badges: "🥉" }
   ]);
 
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const acceptTask = (task) => {
     setMyTasks([...myTasks, { ...task, progress: 0, status: 'Ongoing', area: task.location }]);
     setAvailableTasks(availableTasks.filter(t => t.id !== task.id));
-  };
+  }; 
+  
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append('document', file); 
+
+    try {
+        const token = localStorage.getItem('token');
+
+        const response = await fetch('http://localhost:5000/api/upload', {
+            method: 'POST',
+            headers : {
+              'Authorization': `Bearer ${token}`
+            }, 
+            body: formData, //fetch will automatically set the content-header
+        });
+
+        const data = await response.json();
+        console.log("Server Response:", data);
+        
+        if (response.ok) {
+            alert("File successfully sent to backend!");
+        } else {
+            alert("Upload failed: " + data.error);
+        }
+    } catch (error) {
+        console.error("Error sending file:", error);
+    } finally {
+        setIsUploading(false);
+    }
+};
+
+const triggerFileInput = () => {
+    fileInputRef.current.click();
+};
 
   return (
     <div className="volunteer-dashboard">
@@ -28,7 +70,20 @@ export default function VolunteerDashboard() {
           <p className="subtitle">Welcome back, Volunteer1. Ready for your next mission?</p>
         </div>
         <div className="quick-actions">
-          <button className="ocr-btn">📷 Scan Paper Survey</button>
+            <input 
+                 type="file" 
+                 ref={fileInputRef} 
+                 onChange={handleFileSelect} 
+                 accept="image/*" 
+                 style={{ display: 'none' }} 
+            />
+            <button 
+            className="ocr-btn" 
+            onClick={triggerFileInput}
+            disabled={isUploading}
+            >
+            {isUploading ? "📷 Uploading..." : "📷 Scan Paper Survey"}
+          </button>
           <button className="primary-button">+ New Submission</button>
         </div>
       </div>
