@@ -21,7 +21,8 @@
 
 // server/routes/routes.js
 import express from 'express'; 
-import { loginUser, registerUser, getNGOdashboard, getVolunteerdashboard, getIndividualdashboard, createIssue, deleteIssue, uploadFile } from '../controllers/rootController.js'; 
+import { loginUser, registerUser, getNGOdashboard, getVolunteerdashboard, getIndividualdashboard, createIssue, deleteIssue } from '../controllers/rootController.js'; 
+import { uploadFile } from '../controllers/visionController.js';
 import { upload } from '../utils/uploads.js'; 
 import { authenticateToken } from '../middlewares/authMiddleware.js'; 
 

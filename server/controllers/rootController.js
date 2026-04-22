@@ -147,24 +147,13 @@ export const deleteIssue = async (req, res) => {
   }
 }
 
-async function uploadFile(req, res) { 
-  if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-    }
-    console.log("File received in memory!");
-    console.log("Size:", req.file.size, "bytes");
-    console.log("Type:", req.file.mimetype);
-    
-    return res.json({ msg: "File ready for OCR processing." });
-}
 
 export {
     loginUser, 
     registerUser,
     getNGOdashboard,
     getVolunteerdashboard,
-    getIndividualdashboard,
-    uploadFile, 
+    getIndividualdashboard, 
 }; 
 
 
