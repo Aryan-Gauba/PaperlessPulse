@@ -121,6 +121,47 @@ export const deleteIssue = async (req, res) => {
     }
 };
 
+// 1. Create a Task
+async function createTask(req, res) {
+    const { title, area, assigned } = req.body;
+    const ngoId = req.user.id; // From auth middleware
+
+    try {
+        const result = await pool.query(
+            'INSERT INTO tasks (ngo_id, title, area, assigned_to) VALUES ($1, $2, $3, $4) RETURNING *',
+            [ngoId, title, area, assigned]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
+// 2. Fetch Tasks for NGO
+async function getTasks(req, res) {
+    const ngoId = req.user.id;
+    try {
+        const result = await pool.query(
+            'SELECT * FROM tasks WHERE ngo_id = $1 ORDER BY created_at DESC',
+            [ngoId]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
+// 3. Delete a Task
+async function deleteTask(req, res) {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
+        res.json({ message: "Task deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
 // Update your existing getIndividualdashboard function
  async function getIndividualdashboard(req, res) {
   const userId = req.user.id;
@@ -154,6 +195,9 @@ export {
     getNGOdashboard,
     getVolunteerdashboard,
     getIndividualdashboard, 
+    createTask,    // Add this
+    getTasks,      // Add this
+    deleteTask     // Add this
 }; 
 
 

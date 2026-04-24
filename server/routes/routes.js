@@ -21,7 +21,7 @@
 
 // server/routes/routes.js
 import express from 'express'; 
-import { loginUser, registerUser, getNGOdashboard, getVolunteerdashboard, getIndividualdashboard, createIssue, deleteIssue } from '../controllers/rootController.js'; 
+import { loginUser, registerUser, getNGOdashboard, getVolunteerdashboard, getIndividualdashboard, createIssue, deleteIssue, createTask, getTasks, deleteTask } from '../controllers/rootController.js'; 
 import { uploadFile } from '../controllers/visionController.js';
 import { upload } from '../utils/uploads.js'; 
 import { authenticateToken } from '../middlewares/authMiddleware.js'; 
@@ -37,5 +37,8 @@ router.get('/dashboard/individual', authenticateToken, getIndividualdashboard);
 router.post('/issues', authenticateToken, createIssue);
 router.delete('/issues/:id', authenticateToken, deleteIssue);
 router.post('/upload', authenticateToken, upload.single('document'), uploadFile);
+router.post('/tasks', authenticateToken, createTask);
+router.get('/tasks', authenticateToken, getTasks);
+router.delete('/tasks/:id', authenticateToken, deleteTask);
 
 export { router };

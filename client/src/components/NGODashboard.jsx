@@ -15,27 +15,62 @@ export default function NGODashboard({ token }) {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', area: '', assigned: '' });
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/dashboard/ngo', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(res => res.json())
-    .then(data => setSurveys(data.data || []))
-    .catch(err => console.error("Fetch error:", err));
-  }, [token]);
+// Change your useEffect to fetch both surveys and tasks
+useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            
+            const [surveyRes, taskRes] = await Promise.all([
+                fetch('http://localhost:5000/api/dashboard/ngo', { headers }),
+                fetch('http://localhost:5000/api/tasks', { headers })
+            ]);
 
-  const handleCreateTask = (e) => {
+            const surveyData = await surveyRes.json();
+            const taskData = await taskRes.json();
+
+            setSurveys(surveyData.data || []);
+            setTasks(taskData || []);
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
+    };
+    fetchData();
+}, [token]);
+
+const handleCreateTask = async (e) => {
     e.preventDefault();
-    setTasks([...tasks, { ...newTask, id: Date.now(), status: 'Pending' }]);
-    setNewTask({ title: '', area: '', assigned: '' });
-    setShowTaskModal(false);
-  };
-
-  const handleDeleteTask = (taskId) => {
-    if (window.confirm("Are you sure you want to delete this assignment?")) {
-      setTasks(tasks.filter(t => t.id !== taskId));
+    try {
+        const response = await fetch('http://localhost:5000/api/tasks', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(newTask)
+        });
+        const savedTask = await response.json();
+        setTasks([...tasks, savedTask]);
+        setShowTaskModal(false);
+        setNewTask({ title: '', area: '', assigned: '' });
+    } catch (err) {
+        alert("Error saving task");
     }
-  };
+};
+
+const handleDeleteTask = async (taskId) => {
+    if (window.confirm("Delete this assignment?")) {
+        try {
+            await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setTasks(tasks.filter(t => t.id !== taskId));
+        } catch (err) {
+            alert("Error deleting task");
+        }
+    }
+};
 
   return (
     <div className="ngo-dashboard">
@@ -124,7 +159,7 @@ export default function NGODashboard({ token }) {
                   <div className="task-item" key={task.id}>
                     <div className="task-info">
                       <h4>{task.title}</h4>
-                      <p>📍 {task.area} | 👤 {task.assigned}</p>
+                      <p>📍 {task.area} | 👤 {task.assigned_to}</p>
                       <span className={`status-tag ${task.status.toLowerCase().replace(' ', '-')}`}>
                         {task.status}
                       </span>
