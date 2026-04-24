@@ -41,3 +41,13 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- Optional: Indexing for faster queries based on user_id
 CREATE INDEX idx_surveys_user ON surveys(user_id);
 CREATE INDEX idx_issues_user ON issues(user_id);
+
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    ngo_id INTEGER REFERENCES users(id), -- The NGO who created it
+    title VARCHAR(255) NOT NULL,
+    area VARCHAR(255) NOT NULL,
+    assigned_to VARCHAR(255), -- Volunteer name
+    status VARCHAR(50) DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
