@@ -1,3 +1,4 @@
+# Paperless Pulse
 Clone the repo: 
 ```
 git clone https://github.com/yourusername/PaperlessPulse.git
@@ -5,10 +6,7 @@ git clone https://github.com/yourusername/PaperlessPulse.git
 
 Install dependencies:
 ```
-cd client && npm install
-```
-```
-cd ../server && npm install
+npm install
 ```
 
 Create local .env: They must manually create a .env in the server folder with their own PostgreSQL credentials.
@@ -36,21 +34,17 @@ To run the client & server concurrently, type below command in root directory
 npm start
 ```
 
-Hit Links:
+## Hit Links:
+For Kunal (below link for adding notif and request handling code for volunteers and ngos):
 ```
-https://gemini.google.com/share/e92339414b72
+https://gemini.google.com/share/a18a114001ed
 ```
+Check the deadline: 
 ```
 https://bit.ly/Solution-Challenge-2026
 ```
+Useless chatgpt link: 
 ```
 https://chatgpt.com/gg/v/69d4a42770f8819581bb0f58ecfc848e?token=CRdxKVlQ6fNjVQcmlXf0jw
 ```
-canvas gemini - for all dashboards
-```
-https://gemini.google.com/share/2ed5c0f48588
-```
-### Aryan - Individual Dashboard
-### Abhishek - NGO Dashboard
-### Nisha - Volunteer Dashboard
-### Kunal - Backend code for Google vision and its api
+
