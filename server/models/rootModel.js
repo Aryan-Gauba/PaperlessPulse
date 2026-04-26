@@ -64,3 +64,36 @@ export const getTasksByNgoId = async (ngoId) => {
 export const deleteTaskById = async (id) => {
     return await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
 };
+
+export const getAllVolunteers = async () => {
+    return await pool.query("SELECT id, name, email FROM users WHERE role = 'volunteer'");
+};
+
+// Create the pending relationship and a notification
+export const sendVolunteerInvite = async (orgId, volunteerId, orgName) => {
+    await pool.query(
+        "INSERT INTO org_volunteer_relations (org_id, volunteer_id) VALUES ($1, $2)",
+        [orgId, volunteerId]
+    );
+
+    return await pool.query(
+        "INSERT INTO notifications (recipient_id, sender_id, message, type) VALUES ($1, $2, $3, $4) RETURNING *",
+        [volunteerId, orgId, `${orgName} has invited you to join their organization.`, 'invite']
+    );
+};
+
+// Get notifications for a specific user's inbox
+export const getNotifications = async (userId) => {
+    return await pool.query(
+        "SELECT * FROM notifications WHERE recipient_id = $1 ORDER BY created_at DESC",
+        [userId]
+    );
+};
+
+// Update the relationship status 
+export const updateRelationStatus = async (volunteerId, orgId, status) => {
+    return await pool.query(
+        "UPDATE org_volunteer_relations SET status = $1 WHERE volunteer_id = $2 AND org_id = $3 RETURNING *",
+        [status, volunteerId, orgId]
+    );
+};

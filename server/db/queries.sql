@@ -51,3 +51,23 @@ CREATE TABLE tasks (
     status VARCHAR(50) DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE org_volunteer_relations (
+    id SERIAL PRIMARY KEY,
+    org_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    volunteer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'accepted', 'rejected'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(org_id, volunteer_id) -- ensures an Org can't invite the same volunteer twice
+);
+
+
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    type VARCHAR(50), -- 'invite', 'assignment'
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

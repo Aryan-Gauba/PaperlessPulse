@@ -3,6 +3,7 @@ import * as auth from '../controllers/authController.js';
 import * as dashboard from '../controllers/dashboardController.js';
 import * as issues from '../controllers/issueController.js';
 import * as tasks from '../controllers/tasksController.js';
+import * as relations from '../controllers/relationController.js';
  
 import { uploadFile } from '../services/visionService.js';
 import { upload } from '../utils/uploads.js'; 
@@ -19,6 +20,10 @@ router.get('/dashboard/individual', authenticateToken, dashboard.getIndividualda
 
 router.post('/issues', authenticateToken, issues.createIssue);
 router.delete('/issues/:id', authenticateToken, issues.deleteIssue);
+
+router.post('/invite', authenticateToken, relations.inviteVolunteer);
+router.post('/invite/respond', authenticateToken, relations.respondToInvite);
+router.get('/notifications', authenticateToken, relations.fetchNotifications);
 
 router.post('/upload', authenticateToken, upload.single('document'), uploadFile);
 
