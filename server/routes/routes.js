@@ -1,44 +1,29 @@
-// import express from 'express'; 
-// import { loginUser, 
-//          registerUser, 
-//          getNGOdashboard,
-//          getVolunteerdashboard,
-//          getIndividualdashboard } from '../controllers/rootController.js'; 
-//          import { createIssue } from '../controllers/rootController.js';
-
-// import {authenticateToken} from '../middlewares/authMiddleware.js'; 
-
-// const router = express.Router(); 
-
-// router.post('/api/login', loginUser);
-// router.post('/api/register', registerUser);
-// router.get('/api/dashboard/ngo', authenticateToken, getNGOdashboard)
-// router.get('/api/dashboard/volunteer', authenticateToken, getVolunteerdashboard)
-// router.get('/api/dashboard/individual', authenticateToken, getIndividualdashboard)
-// router.post('/issues', authenticateToken, createIssue);
-
-// export { router };  
-
-// server/routes/routes.js
 import express from 'express'; 
-import { loginUser, registerUser, getNGOdashboard, getVolunteerdashboard, getIndividualdashboard, createIssue, deleteIssue, createTask, getTasks, deleteTask } from '../controllers/rootController.js'; 
-import { uploadFile } from '../controllers/visionController.js';
+import * as auth from '../controllers/authController.js';
+import * as dashboard from '../controllers/dashboardController.js';
+import * as issues from '../controllers/issueController.js';
+import * as tasks from '../controllers/tasksController.js';
+ 
+import { uploadFile } from '../services/visionService.js';
 import { upload } from '../utils/uploads.js'; 
 import { authenticateToken } from '../middlewares/authMiddleware.js'; 
 
 const router = express.Router(); 
 
-// Remove the '/api' prefix from these strings
-router.post('/login', loginUser);
-router.post('/register', registerUser);
-router.get('/dashboard/ngo', authenticateToken, getNGOdashboard);
-router.get('/dashboard/volunteer', authenticateToken, getVolunteerdashboard);
-router.get('/dashboard/individual', authenticateToken, getIndividualdashboard);
-router.post('/issues', authenticateToken, createIssue);
-router.delete('/issues/:id', authenticateToken, deleteIssue);
+router.post('/login', auth.loginUser);
+router.post('/register', auth.registerUser);
+
+router.get('/dashboard/ngo', authenticateToken, dashboard.getNGOdashboard);
+router.get('/dashboard/volunteer', authenticateToken, dashboard.getVolunteerdashboard);
+router.get('/dashboard/individual', authenticateToken, dashboard.getIndividualdashboard);
+
+router.post('/issues', authenticateToken, issues.createIssue);
+router.delete('/issues/:id', authenticateToken, issues.deleteIssue);
+
 router.post('/upload', authenticateToken, upload.single('document'), uploadFile);
-router.post('/tasks', authenticateToken, createTask);
-router.get('/tasks', authenticateToken, getTasks);
-router.delete('/tasks/:id', authenticateToken, deleteTask);
+
+router.post('/tasks', authenticateToken, tasks.createTask);
+router.get('/tasks', authenticateToken, tasks.getTasks);
+router.delete('/tasks/:id', authenticateToken, tasks.deleteTask);
 
 export { router };

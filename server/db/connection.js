@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 const { Pool } = pg;
 dotenv.config();
 
-// Individual parameter connection
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -13,7 +12,6 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// Test the connection on startup
 function connectDB() {
     pool.connect((err, client, release) => {
   if (err) {
