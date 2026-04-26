@@ -21,6 +21,8 @@ router.get('/dashboard/individual', authenticateToken, dashboard.getIndividualda
 router.post('/issues', authenticateToken, issues.createIssue);
 router.delete('/issues/:id', authenticateToken, issues.deleteIssue);
 
+router.get('/volunteers', authenticateToken, relations.fetchVolunteers);
+router.get('/my-organizations', authenticateToken, relations.fetchMyOrganizations);
 router.post('/invite', authenticateToken, relations.inviteVolunteer);
 router.post('/invite/respond', authenticateToken, relations.respondToInvite);
 router.get('/notifications', authenticateToken, relations.fetchNotifications);

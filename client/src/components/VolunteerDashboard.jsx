@@ -1,14 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 export default function VolunteerDashboard() {
   const [activeTab, setActiveTab] = useState('missions');
-  const [availableTasks, setAvailableTasks] = useState([
-    { id: 1, title: "Survey: Flood Relief Impact", location: "Okhla", reward: "50 XP", urgency: "High" },
-    { id: 2, title: "Medical Supply Inventory", location: "Rohini", reward: "30 XP", urgency: "Medium" },
-  ]);
-  const [myTasks, setMyTasks] = useState([
-    { id: 101, title: "Ration Distribution", area: "Dwarka", progress: 65, status: "Ongoing" }
-  ]);
+  
+  const [availableTasks, setAvailableTasks] = useState([]);
+  const [myTasks, setMyTasks] = useState([]);
+  
   const [leaderboard] = useState([
     { rank: 1, name: "Rahul Sharma", xp: "1250 XP", badges: "🥇" },
     { rank: 2, name: "Sanya Iyer", xp: "980 XP", badges: "🥈" },
@@ -17,46 +14,58 @@ export default function VolunteerDashboard() {
 
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [myOrgs, setMyOrgs] = useState([]);
 
-  const acceptTask = (task) => {
+  const getToken = useCallback(() => {
+    const storedData = localStorage.getItem('user');
+    if (!storedData) return "";
+    try {
+      return JSON.parse(storedData).token;
+    } catch (e) {
+      return storedData; 
+    }
+  }, []);
+
+  const acceptTask = async (task) => {
+    //  (moves it immediately so the app feels fast)
     setMyTasks([...myTasks, { ...task, progress: 0, status: 'Ongoing', area: task.location }]);
     setAvailableTasks(availableTasks.filter(t => t.id !== task.id));
+
+    try {
+      await fetch(`http://localhost:5000/api/tasks/${task.id}/status`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}` 
+        },
+        body: JSON.stringify({ status: 'Ongoing' })
+      });
+    } catch (err) {
+      console.error("Failed to update task status in DB", err);
+    }
   }; 
-  
+
   const handleFileSelect = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     setIsUploading(true);
-
     const formData = new FormData();
     formData.append('document', file); 
 
     try {
-        const storedData = localStorage.getItem('user');
-
-        let token = ""; 
-        if (storedData) {
-            try {
-               const parsed = JSON.parse(storedData);
-               token = parsed.token; 
-            } catch (e) {
-               token = storedData; 
-    }
-        }
         const response = await fetch('http://localhost:5000/api/upload', {
             method: 'POST',
             headers : {
-              'Authorization': `Bearer ${token}`
+              'Authorization': `Bearer ${getToken()}`
             }, 
-            body: formData, //fetch will automatically set the content-header
+            body: formData, 
         });
 
         const data = await response.json();
-        console.log("Server Response:", data);
         
         if (response.ok) {
-            alert("File successfully sent to backend!");
+            alert("File successfully sent to backend! Raw Text: " + data.rawText);
         } else {
             alert("Upload failed: " + data.error);
         }
@@ -65,18 +74,77 @@ export default function VolunteerDashboard() {
     } finally {
         setIsUploading(false);
     }
-};
+  };
 
-const triggerFileInput = () => {
+  const triggerFileInput = () => {
     fileInputRef.current.click();
-};
+  };
+
+  const fetchMyOrganizations = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/my-organizations', {
+        headers: { 'Authorization': `Bearer ${getToken()}` } 
+      });
+      if(response.ok) {
+        const data = await response.json();
+        setMyOrgs(data);
+      }
+    } catch (err) {
+      console.error("Error fetching organizations:", err);
+    }
+  }, [getToken]);
+
+  const fetchAssignedTasks = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/tasks', {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        const mappedTasks = data.map(t => ({
+          id: t.id,
+          title: t.title,
+          location: t.area,
+          reward: "50 XP",
+          urgency: "High", 
+          status: t.status
+        }));
+
+        const pending = mappedTasks.filter(t => t.status === 'Pending');
+        const ongoing = mappedTasks.filter(t => t.status !== 'Pending').map(t => ({
+            ...t, area: t.location, progress: 10 
+        }));
+
+        setAvailableTasks(pending);
+        setMyTasks(ongoing);
+      }
+    } catch (err) {
+      console.error("Error fetching tasks:", err);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    fetchMyOrganizations();
+    fetchAssignedTasks(); 
+    
+    const handleOrgUpdate = () => {
+        fetchMyOrganizations();
+    };
+    
+    window.addEventListener('orgAccepted', handleOrgUpdate);
+    return () => {
+        window.removeEventListener('orgAccepted', handleOrgUpdate);
+    };
+  }, [fetchMyOrganizations, fetchAssignedTasks]);
 
   return (
     <div className="volunteer-dashboard">
       <div className="dashboard-header">
         <div>
           <h2>Volunteer Field Portal</h2>
-          <p className="subtitle">Welcome back, Volunteer1. Ready for your next mission?</p>
+          <p className="subtitle">Welcome back! Ready for your next mission?</p>
         </div>
         <div className="quick-actions">
             <input 
@@ -97,11 +165,10 @@ const triggerFileInput = () => {
         </div>
       </div>
 
-      {/* Stats Overview */}
       <div className="stats-grid">
         <div className="stat-card">
           <span className="stat-label">Your Contributions</span>
-          <span className="stat-value">12</span>
+          <span className="stat-value">{myTasks.length}</span> {/* Updated to show real length */}
         </div>
         <div className="stat-card">
           <span className="stat-label">Current Rank</span>
@@ -111,6 +178,21 @@ const triggerFileInput = () => {
           <span className="stat-label">Total Impact XP</span>
           <span className="stat-value">850</span>
         </div>
+      </div>
+
+      <div className="orgs-container" style={{background: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '30px'}}>
+        <h3 style={{marginTop: 0, marginBottom: '10px', fontSize: '1.1rem', color: '#1e293b'}}>My Organizations</h3>
+        {myOrgs.length === 0 ? (
+          <p style={{color: '#64748b', fontSize: '0.9rem', margin: 0}}>You haven't joined any organizations yet. Check the bell icon for invites!</p>
+        ) : (
+          <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+            {myOrgs.map(org => (
+              <span key={org.id} style={{background: '#dbeafe', color: '#1d4ed8', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600'}}>
+                🏢 {org.name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="dashboard-tabs">
@@ -133,6 +215,7 @@ const triggerFileInput = () => {
                 <button className="accept-btn" onClick={() => acceptTask(task)}>Accept Mission</button>
               </div>
             ))}
+            {availableTasks.length === 0 && <p className="empty-msg">No pending missions available.</p>}
           </div>
         )}
 
@@ -190,6 +273,7 @@ const triggerFileInput = () => {
         .dashboard-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem; }
         .subtitle { color: #64748b; margin-top: 5px; }
         .quick-actions { display: flex; gap: 12px; }
+        .primary-button { background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
         .ocr-btn { background: #e0f2fe; color: #007bff; border: 2px dashed #007bff; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .ocr-btn:hover { background: #bae6fd; }
 
@@ -223,6 +307,7 @@ const triggerFileInput = () => {
         .task-actions { display: flex; gap: 10px; }
         .update-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .submit-btn { background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .empty-msg { color: #64748b; font-style: italic; }
 
         /* Leaderboard */
         .leaderboard-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }

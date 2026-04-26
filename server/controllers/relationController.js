@@ -36,3 +36,21 @@ export const fetchNotifications = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+export const fetchVolunteers = async (req, res) => {
+    try {
+        const result = await model.getAvailableVolunteers();
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+export const fetchMyOrganizations = async (req, res) => {
+    try {
+        const result = await model.getOrganizationsByVolunteer(req.user.id);
+        res.json(result.rows); 
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

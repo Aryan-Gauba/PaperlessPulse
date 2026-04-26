@@ -14,10 +14,16 @@ export const createTask = async (req, res) => {
 }; 
 
 export const getTasks = async(req, res) => {
-    const ngoId = req.user.id;
     try {
-        const result = await model.getTasksByNgoId(ngoId);
-        res.json(result.rows);
+        if (req.user.role === 'ngo') {
+            const result = await RootModel.getTasksByNgoId(req.user.id);
+            res.json(result.rows);
+        } else if (req.user.role === 'volunteer') {
+            const result = await RootModel.getTasksByVolunteerName(req.user.name);
+            res.json(result.rows);
+        } else {
+            res.status(403).json({ message: "Forbidden role" });
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

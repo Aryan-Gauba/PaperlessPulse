@@ -61,6 +61,13 @@ export const getTasksByNgoId = async (ngoId) => {
     );
 };
 
+export const getTasksByVolunteerName = async (volunteerName) => {
+    return await pool.query(
+        "SELECT * FROM tasks WHERE assigned_to = $1 ORDER BY created_at DESC",
+        [volunteerName]
+    );
+};
+
 export const deleteTaskById = async (id) => {
     return await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
 };
@@ -69,7 +76,6 @@ export const getAllVolunteers = async () => {
     return await pool.query("SELECT id, name, email FROM users WHERE role = 'volunteer'");
 };
 
-// Create the pending relationship and a notification
 export const sendVolunteerInvite = async (orgId, volunteerId, orgName) => {
     await pool.query(
         "INSERT INTO org_volunteer_relations (org_id, volunteer_id) VALUES ($1, $2)",
@@ -82,18 +88,40 @@ export const sendVolunteerInvite = async (orgId, volunteerId, orgName) => {
     );
 };
 
-// Get notifications for a specific user's inbox
+// to ONLY fetch unread notifications
 export const getNotifications = async (userId) => {
     return await pool.query(
-        "SELECT * FROM notifications WHERE recipient_id = $1 ORDER BY created_at DESC",
+        "SELECT * FROM notifications WHERE recipient_id = $1 AND is_read = FALSE ORDER BY created_at DESC",
         [userId]
     );
 };
 
-// Update the relationship status 
+// to change the status AND mark the notification as read
 export const updateRelationStatus = async (volunteerId, orgId, status) => {
-    return await pool.query(
+    const relation = await pool.query(
         "UPDATE org_volunteer_relations SET status = $1 WHERE volunteer_id = $2 AND org_id = $3 RETURNING *",
         [status, volunteerId, orgId]
     );
+
+    // mark the invite notification as read so it disappears from the bell
+    await pool.query(
+        "UPDATE notifications SET is_read = TRUE WHERE recipient_id = $1 AND sender_id = $2 AND type = 'invite'",
+        [volunteerId, orgId]
+    );
+
+    return relation.rows[0];
+};
+
+export const getAvailableVolunteers = async () => {
+    return await pool.query("SELECT id, name, email FROM users WHERE role = 'volunteer'");
+};
+
+
+export const getOrganizationsByVolunteer = async (volunteerId) => {
+    return await pool.query(`
+        SELECT u.id, u.name, u.email, r.status 
+        FROM org_volunteer_relations r
+        JOIN users u ON r.org_id = u.id
+        WHERE r.volunteer_id = $1 AND r.status = 'accepted'
+    `, [volunteerId]);
 };

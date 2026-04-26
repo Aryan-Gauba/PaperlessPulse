@@ -1,44 +1,63 @@
 import React, { useEffect, useState } from 'react';
 
 export default function NGODashboard({ token }) {
-  const [view, setView] = useState('management'); // 'management' or 'surveys'
+  const [view, setView] = useState('management'); // 'management', 'surveys', or 'network'
   const [surveys, setSurveys] = useState([]);
-  const [volunteers] = useState([
-    { id: 1, name: "Rahul Sharma", status: "Active" },
-    { id: 2, name: "Sanya Iyer", status: "In Field" },
-    { id: 3, name: "Amit Verma", status: "Available" }
-  ]);
-  const [tasks, setTasks] = useState([
-    { id: 101, title: "Ration Distribution", area: "Okhla", assigned: "Rahul Sharma", status: "Ongoing" },
-    { id: 102, title: "Medical kit delivery", area: "Rohini Sector 7", assigned: "Rahul Sharma", status: "Pending" }
-  ]);
+  const [tasks, setTasks] = useState([]);
+  const [networkVolunteers, setNetworkVolunteers] = useState([]); 
+  
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', area: '', assigned: '' });
 
-// Change your useEffect to fetch both surveys and tasks
-useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
             
-            const [surveyRes, taskRes] = await Promise.all([
+            const [surveyRes, taskRes, volRes] = await Promise.all([
                 fetch('http://localhost:5000/api/dashboard/ngo', { headers }),
-                fetch('http://localhost:5000/api/tasks', { headers })
+                fetch('http://localhost:5000/api/tasks', { headers }),
+                fetch('http://localhost:5000/api/volunteers', { headers }).catch(() => ({ json: () => [] })) 
             ]);
 
             const surveyData = await surveyRes.json();
             const taskData = await taskRes.json();
+            const volData = await volRes.json();
 
             setSurveys(surveyData.data || []);
             setTasks(taskData || []);
+            setNetworkVolunteers(Array.isArray(volData) ? volData : []);
         } catch (err) {
             console.error("Fetch error:", err);
         }
     };
-    fetchData();
-}, [token]);
+    if (token) fetchData();
+  }, [token]);
 
-const handleCreateTask = async (e) => {
+  // Logic to Ping the Volunteer's Bell Icon
+  const handleInvite = async (volunteerId, volunteerName) => {
+    try {
+        const response = await fetch('http://localhost:5000/api/invite', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ volunteerId })
+        });
+        
+        if (response.ok) {
+            alert(`Invitation sent to ${volunteerName}!`);
+        } else {
+            const data = await response.json();
+            alert(`Could not send invite: ${data.error}`);
+        }
+    } catch (err) {
+        console.error("Invite error:", err);
+    }
+  };
+
+  const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
         const response = await fetch('http://localhost:5000/api/tasks', {
@@ -56,9 +75,9 @@ const handleCreateTask = async (e) => {
     } catch (err) {
         alert("Error saving task");
     }
-};
+  };
 
-const handleDeleteTask = async (taskId) => {
+  const handleDeleteTask = async (taskId) => {
     if (window.confirm("Delete this assignment?")) {
         try {
             await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
@@ -70,7 +89,7 @@ const handleDeleteTask = async (taskId) => {
             alert("Error deleting task");
         }
     }
-};
+  };
 
   return (
     <div className="ngo-dashboard">
@@ -83,6 +102,12 @@ const handleDeleteTask = async (taskId) => {
           Strategic Command
         </button>
         <button 
+          className={`tab-btn ${view === 'network' ? 'active' : ''}`}
+          onClick={() => setView('network')}
+        >
+          Volunteer Network
+        </button>
+        <button 
           className={`tab-btn ${view === 'surveys' ? 'active' : ''}`}
           onClick={() => setView('surveys')}
         >
@@ -90,7 +115,7 @@ const handleDeleteTask = async (taskId) => {
         </button>
       </div>
 
-      {view === 'management' ? (
+      {view === 'management' && (
         <>
           <div className="dashboard-header">
             <div>
@@ -106,8 +131,8 @@ const handleDeleteTask = async (taskId) => {
               <span className="stat-value">{surveys.length}</span>
             </div>
             <div className="stat-card">
-              <span className="stat-label">Active Volunteers</span>
-              <span className="stat-value">{volunteers.length}</span>
+              <span className="stat-label">Network Size</span>
+              <span className="stat-value">{networkVolunteers.length}</span>
             </div>
             <div className="stat-card">
               <span className="stat-label">Tasks Active</span>
@@ -116,7 +141,6 @@ const handleDeleteTask = async (taskId) => {
           </div>
 
           <div className="dashboard-content">
-            {/* Issues List */}
             <div className="content-section">
               <div className="section-header">
                 <h3>Live Field Reports</h3>
@@ -151,7 +175,6 @@ const handleDeleteTask = async (taskId) => {
               </div>
             </div>
 
-            {/* Active Assignments with DELETE functionality */}
             <div className="content-section">
               <h3>Active Assignments</h3>
               <div className="task-list">
@@ -164,13 +187,7 @@ const handleDeleteTask = async (taskId) => {
                         {task.status}
                       </span>
                     </div>
-                    <button 
-                      className="delete-btn" 
-                      onClick={() => handleDeleteTask(task.id)}
-                      title="Remove Assignment"
-                    >
-                      🗑️
-                    </button>
+                    <button className="delete-btn" onClick={() => handleDeleteTask(task.id)} title="Remove Assignment">🗑️</button>
                   </div>
                 )) : (
                   <p className="empty-msg">No tasks assigned yet.</p>
@@ -179,7 +196,44 @@ const handleDeleteTask = async (taskId) => {
             </div>
           </div>
         </>
-      ) : (
+      )}
+
+      {/* NEW: Volunteer Network View */}
+      {view === 'network' && (
+        <div className="network-view">
+          <div className="section-header">
+            <h2>Volunteer Directory</h2>
+            <p className="subtitle">Discover and invite field workers to your organization</p>
+          </div>
+          <div className="volunteer-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginTop: '20px'}}>
+            {networkVolunteers.length > 0 ? networkVolunteers.map(v => (
+              <div key={v.id} style={{background: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px'}}>
+                  <div style={{width: '40px', height: '40px', background: '#e0f2fe', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', color: '#0ea5e9'}}>
+                    {v.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 style={{margin: '0 0 4px 0', fontSize: '1.05rem', color: '#1e293b'}}>{v.name}</h4>
+                    <span style={{fontSize: '0.8rem', color: '#10b981', background: '#dcfce7', padding: '2px 8px', borderRadius: '12px'}}>Field Ready</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleInvite(v.id, v.name)}
+                  style={{width: '100%', background: '#0f172a', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: '0.2s'}}
+                  onMouseOver={(e) => e.target.style.background = '#334155'}
+                  onMouseOut={(e) => e.target.style.background = '#0f172a'}
+                >
+                  Send Invite +
+                </button>
+              </div>
+            )) : (
+              <p>No volunteers found in the database. Ensure users are registered with the 'volunteer' role.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {view === 'surveys' && (
         <div className="surveys-archive">
           <div className="section-header">
             <h2>Paper Survey Archive</h2>
@@ -239,7 +293,8 @@ const handleDeleteTask = async (taskId) => {
                   value={newTask.assigned} onChange={e => setNewTask({...newTask, assigned: e.target.value})}
                 >
                   <option value="">Select a volunteer</option>
-                  {volunteers.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
+                  {/* Now selecting from the real network networkVolunteers instead of hardcoded mock data */}
+                  {networkVolunteers.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
                 </select>
               </div>
               <div className="modal-actions">
@@ -261,6 +316,7 @@ const handleDeleteTask = async (taskId) => {
 
         .dashboard-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem; }
         .subtitle { color: #64748b; margin-top: 4px; }
+        .primary-button { background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
@@ -298,7 +354,10 @@ const handleDeleteTask = async (taskId) => {
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-card { background: white; padding: 32px; border-radius: 24px; width: 440px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .input-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+        .form-input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
         .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .secondary-button { background: #f1f5f9; color: #475569; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
       `}</style>
     </div>
   );
