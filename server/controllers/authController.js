@@ -9,7 +9,7 @@ export const loginUser = async(req, res) => {
     
         if (user) {
             const token = jwt.sign(
-                { id: user.id, role: user.role }, 
+                { id: user.id, role: user.role, name:user.name }, 
                 process.env.JWT_SECRET, 
                 { expiresIn: '2h' }
             );
@@ -27,7 +27,7 @@ export const registerUser = async (req, res) => {
   const { name, email, role, password } = req.body; 
   try {
     const user = await model.create(name, email, role, password);
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '2h' });
+    const token = jwt.sign({ id: user.id, role: user.role, name: user.name  }, process.env.JWT_SECRET, { expiresIn: '2h' });
     
     res.json({ token, role: user.role, name: user.name });
     } catch (err) {

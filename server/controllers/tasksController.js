@@ -3,7 +3,7 @@ import * as model from '../models/rootModel.js';
 
 export const createTask = async (req, res) => {
     const { title, area, assigned } = req.body;
-    const ngoId = req.user.id; // From auth middleware
+    const ngoId = req.user.id; 
 
     try {
         const newTask = await model.createTask(ngoId, title, area, assigned); 
@@ -16,10 +16,10 @@ export const createTask = async (req, res) => {
 export const getTasks = async(req, res) => {
     try {
         if (req.user.role === 'ngo') {
-            const result = await RootModel.getTasksByNgoId(req.user.id);
+            const result = await model.getTasksByNgoId(req.user.id);
             res.json(result.rows);
         } else if (req.user.role === 'volunteer') {
-            const result = await RootModel.getTasksByVolunteerName(req.user.name);
+            const result = await model.getTasksByVolunteerName(req.user.name);
             res.json(result.rows);
         } else {
             res.status(403).json({ message: "Forbidden role" });
@@ -28,6 +28,23 @@ export const getTasks = async(req, res) => {
         res.status(500).json({ error: err.message });
     }
 }; 
+
+export const updateTaskStatus = async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    try {
+        const updatedTask = await model.updateTaskStatus(id, status);
+        
+        if (!updatedTask) {
+            return res.status(404).json({ error: "Task not found" });
+        }
+        
+        res.json(updatedTask);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 
 export const deleteTask = async (req, res) => {
     const { id } = req.params;

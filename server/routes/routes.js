@@ -29,8 +29,9 @@ router.get('/notifications', authenticateToken, relations.fetchNotifications);
 
 router.post('/upload', authenticateToken, upload.single('document'), uploadFile);
 
-router.post('/tasks', authenticateToken, tasks.createTask);
 router.get('/tasks', authenticateToken, tasks.getTasks);
+router.post('/tasks', authenticateToken, tasks.createTask);
+router.put('/tasks/:id/status', authenticateToken, tasks.updateTaskStatus);
 router.delete('/tasks/:id', authenticateToken, tasks.deleteTask);
 
 export { router };

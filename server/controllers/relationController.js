@@ -3,7 +3,7 @@ import * as model from '../models/rootModel.js';
 export const inviteVolunteer = async (req, res) => {
     const { volunteerId } = req.body;
     const orgId = req.user.id;
-    const orgName = req.user.name; // ensure name is in JWT payload
+    const orgName = req.user.name; 
 
     try {
         await model.sendVolunteerInvite(orgId, volunteerId, orgName);
@@ -39,7 +39,7 @@ export const fetchNotifications = async (req, res) => {
 
 export const fetchVolunteers = async (req, res) => {
     try {
-        const result = await model.getAvailableVolunteers();
+        const result = await model.getVolunteersWithStatus(req.user.id);
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });

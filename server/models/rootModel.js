@@ -68,6 +68,14 @@ export const getTasksByVolunteerName = async (volunteerName) => {
     );
 };
 
+export const updateTaskStatus = async (id, status) => {
+    const result = await pool.query(
+        'UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *',
+        [status, id]
+    );
+    return result.rows[0];
+};
+
 export const deleteTaskById = async (id) => {
     return await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
 };
@@ -88,7 +96,6 @@ export const sendVolunteerInvite = async (orgId, volunteerId, orgName) => {
     );
 };
 
-// to ONLY fetch unread notifications
 export const getNotifications = async (userId) => {
     return await pool.query(
         "SELECT * FROM notifications WHERE recipient_id = $1 AND is_read = FALSE ORDER BY created_at DESC",
@@ -96,14 +103,12 @@ export const getNotifications = async (userId) => {
     );
 };
 
-// to change the status AND mark the notification as read
 export const updateRelationStatus = async (volunteerId, orgId, status) => {
     const relation = await pool.query(
         "UPDATE org_volunteer_relations SET status = $1 WHERE volunteer_id = $2 AND org_id = $3 RETURNING *",
         [status, volunteerId, orgId]
     );
 
-    // mark the invite notification as read so it disappears from the bell
     await pool.query(
         "UPDATE notifications SET is_read = TRUE WHERE recipient_id = $1 AND sender_id = $2 AND type = 'invite'",
         [volunteerId, orgId]
@@ -112,10 +117,15 @@ export const updateRelationStatus = async (volunteerId, orgId, status) => {
     return relation.rows[0];
 };
 
-export const getAvailableVolunteers = async () => {
-    return await pool.query("SELECT id, name, email FROM users WHERE role = 'volunteer'");
+export const getVolunteersWithStatus = async (orgId) => {
+    return await pool.query(`
+        SELECT u.id, u.name, u.email, r.status 
+        FROM users u
+        LEFT JOIN org_volunteer_relations r 
+            ON u.id = r.volunteer_id AND r.org_id = $1
+        WHERE u.role = 'volunteer'
+    `, [orgId]);
 };
-
 
 export const getOrganizationsByVolunteer = async (volunteerId) => {
     return await pool.query(`

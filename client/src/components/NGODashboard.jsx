@@ -47,6 +47,10 @@ export default function NGODashboard({ token }) {
         });
         
         if (response.ok) {
+            // Optimistic UI Update: Instantly change the button state without a page refresh
+            setNetworkVolunteers(prev => 
+              prev.map(vol => vol.id === volunteerId ? { ...vol, status: 'pending' } : vol)
+            );
             alert(`Invitation sent to ${volunteerName}!`);
         } else {
             const data = await response.json();
@@ -131,8 +135,10 @@ export default function NGODashboard({ token }) {
               <span className="stat-value">{surveys.length}</span>
             </div>
             <div className="stat-card">
-              <span className="stat-label">Network Size</span>
-              <span className="stat-value">{networkVolunteers.length}</span>
+                <span className="stat-label">Network Size</span>
+                <span className="stat-value">
+                {networkVolunteers.filter(v => v.status === 'accepted').length}
+                </span>
             </div>
             <div className="stat-card">
               <span className="stat-label">Tasks Active</span>
@@ -198,40 +204,53 @@ export default function NGODashboard({ token }) {
         </>
       )}
 
-      {/* NEW: Volunteer Network View */}
-      {view === 'network' && (
-        <div className="network-view">
-          <div className="section-header">
-            <h2>Volunteer Directory</h2>
-            <p className="subtitle">Discover and invite field workers to your organization</p>
-          </div>
-          <div className="volunteer-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginTop: '20px'}}>
-            {networkVolunteers.length > 0 ? networkVolunteers.map(v => (
-              <div key={v.id} style={{background: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'}}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px'}}>
-                  <div style={{width: '40px', height: '40px', background: '#e0f2fe', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', color: '#0ea5e9'}}>
-                    {v.name.charAt(0)}
+      {/* Volunteer Network View */}
+        {view === 'network' && (
+          <div className="network-view">
+            <div className="section-header">
+              <h2>Volunteer Directory</h2>
+              <p className="subtitle">Discover and invite field workers to your organization</p>
+            </div>
+            <div className="volunteer-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginTop: '20px'}}>
+              {networkVolunteers.length > 0 ? networkVolunteers.map(v => (
+                <div key={v.id} style={{background: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px'}}>
+                    <div style={{width: '40px', height: '40px', background: '#e0f2fe', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', color: '#0ea5e9'}}>
+                      {v.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 style={{margin: '0 0 4px 0', fontSize: '1.05rem', color: '#1e293b'}}>{v.name}</h4>
+                      <span style={{fontSize: '0.8rem', color: '#10b981', background: '#dcfce7', padding: '2px 8px', borderRadius: '12px'}}>Field Ready</span>
+                    </div>
                   </div>
-                  <div>
-                    <h4 style={{margin: '0 0 4px 0', fontSize: '1.05rem', color: '#1e293b'}}>{v.name}</h4>
-                    <span style={{fontSize: '0.8rem', color: '#10b981', background: '#dcfce7', padding: '2px 8px', borderRadius: '12px'}}>Field Ready</span>
-                  </div>
+                  
+                  {/* Smart Conditional Buttons */}
+                  {v.status === 'accepted' ? (
+                    <button disabled style={{width: '100%', background: '#10b981', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'not-allowed'}}>
+                      ✅ In Team
+                    </button>
+                  ) : v.status === 'pending' ? (
+                    <button disabled style={{width: '100%', background: '#f59e0b', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'not-allowed'}}>
+                      ⏳ Invite Pending
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => handleInvite(v.id, v.name)}
+                      style={{width: '100%', background: '#0f172a', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: '0.2s'}}
+                      onMouseOver={(e) => e.target.style.background = '#334155'}
+                      onMouseOut={(e) => e.target.style.background = '#0f172a'}
+                    >
+                      Send Invite +
+                    </button>
+                  )}
+
                 </div>
-                <button 
-                  onClick={() => handleInvite(v.id, v.name)}
-                  style={{width: '100%', background: '#0f172a', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: '0.2s'}}
-                  onMouseOver={(e) => e.target.style.background = '#334155'}
-                  onMouseOut={(e) => e.target.style.background = '#0f172a'}
-                >
-                  Send Invite +
-                </button>
-              </div>
-            )) : (
-              <p>No volunteers found in the database. Ensure users are registered with the 'volunteer' role.</p>
-            )}
+              )) : (
+                <p>No volunteers found in the database. Ensure users are registered with the 'volunteer' role.</p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {view === 'surveys' && (
         <div className="surveys-archive">
@@ -293,8 +312,10 @@ export default function NGODashboard({ token }) {
                   value={newTask.assigned} onChange={e => setNewTask({...newTask, assigned: e.target.value})}
                 >
                   <option value="">Select a volunteer</option>
-                  {/* Now selecting from the real network networkVolunteers instead of hardcoded mock data */}
-                  {networkVolunteers.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
+                  {/* Only allow assigning to 'accepted' network volunteers */}
+                  {networkVolunteers.filter(v => v.status === 'accepted').map(v => (
+                      <option key={v.id} value={v.name}>{v.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="modal-actions">
