@@ -4,6 +4,7 @@ import * as dashboard from '../controllers/dashboardController.js';
 import * as issues from '../controllers/issueController.js';
 import * as tasks from '../controllers/tasksController.js';
 import * as relations from '../controllers/relationController.js';
+import * as profile from '../controllers/profileController.js';
  
 import { uploadFile } from '../services/visionService.js';
 import { upload } from '../utils/uploads.js'; 
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post('/login', auth.loginUser);
 router.post('/register', auth.registerUser);
+router.get('/profile', authenticateToken, profile.getProfile);
 
 router.get('/dashboard/ngo', authenticateToken, dashboard.getNGOdashboard);
 router.get('/dashboard/volunteer', authenticateToken, dashboard.getVolunteerdashboard);

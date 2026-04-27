@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 export default function NGODashboard({ token }) {
+  const [profile, setProfile] = useState(null);
   const [view, setView] = useState('management'); // 'management', 'surveys', or 'network'
   const [surveys, setSurveys] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -14,19 +15,22 @@ export default function NGODashboard({ token }) {
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
             
-            const [surveyRes, taskRes, volRes] = await Promise.all([
+            const [surveyRes, taskRes, volRes, profileRes] = await Promise.all([
                 fetch('https://paperlesspulse.onrender.com/api/dashboard/ngo', { headers }),
                 fetch('https://paperlesspulse.onrender.com/api/tasks', { headers }),
-                fetch('https://paperlesspulse.onrender.com/api/volunteers', { headers }).catch(() => ({ json: () => [] })) 
+                fetch('https://paperlesspulse.onrender.com/api/volunteers', { headers }).catch(() => ({ json: () => [] })),
+                fetch('http://localhost:5000/api/profile', { headers }) 
             ]);
 
             const surveyData = await surveyRes.json();
             const taskData = await taskRes.json();
             const volData = await volRes.json();
+            const profileData = await profileRes.json();
 
             setSurveys(surveyData.data || []);
             setTasks(taskData || []);
             setNetworkVolunteers(Array.isArray(volData) ? volData : []);
+            setProfile(profileData);
         } catch (err) {
             console.error("Fetch error:", err);
         }
@@ -99,6 +103,12 @@ export default function NGODashboard({ token }) {
     <div className="ngo-dashboard">
       {/* Navigation Tabs */}
       <div className="dashboard-tabs">
+        <button 
+          className={`tab-btn ${view === 'profile' ? 'active' : ''}`}
+          onClick={() => setView('profile')}
+        >
+          Organization Profile
+        </button>
         <button 
           className={`tab-btn ${view === 'management' ? 'active' : ''}`}
           onClick={() => setView('management')}
@@ -281,6 +291,68 @@ export default function NGODashboard({ token }) {
                 <p>No scanned surveys found in the database.</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* NGO Profile View */}
+      {view === 'profile' && profile && (
+        <div className="profile-view" style={{ animation: 'fadeIn 0.3s ease' }}>
+          <div className="section-header">
+            <h2>Organization Profile</h2>
+            <p className="subtitle">Manage your NGO details and headquarters information</p>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '30px', marginTop: '20px' }}>
+            {/* Left Column: ID Card */}
+            <div style={{ background: 'white', padding: '30px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+              <div style={{ width: '100px', height: '100px', background: '#0f172a', color: 'white', fontSize: '2.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', margin: '0 auto 20px' }}>
+                {profile.name.charAt(0)}
+              </div>
+              <h3 style={{ margin: '0 0 5px 0', fontSize: '1.4rem', color: '#1e293b' }}>{profile.name}</h3>
+              <p style={{ margin: '0 0 20px 0', color: '#64748b', fontSize: '0.9rem' }}>Registered NGO</p>
+              <span style={{ background: '#dcfce7', color: '#10b981', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '700' }}>
+                ✓ Account Verified
+              </span>
+            </div>
+
+            {/* Right Column: Details */}
+            <div style={{ background: 'white', padding: '30px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+              <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>Official Details</h4>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', fontWeight: '600', marginBottom: '5px' }}>Organization Name</label>
+                  <div style={{ padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#334155' }}>
+                    {profile.name}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', fontWeight: '600', marginBottom: '5px' }}>Contact Email</label>
+                  <div style={{ padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#334155' }}>
+                    {profile.email}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', fontWeight: '600', marginBottom: '5px' }}>Platform Role</label>
+                  <div style={{ padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#334155', textTransform: 'capitalize' }}>
+                    {profile.role}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', fontWeight: '600', marginBottom: '5px' }}>Join Date</label>
+                  <div style={{ padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#334155' }}>
+                    {new Date(profile.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '30px' }}>
+                <button className="primary-button" style={{ opacity: '0.5', cursor: 'not-allowed' }} title="Coming soon">
+                  Edit Profile
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

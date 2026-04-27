@@ -135,3 +135,11 @@ export const getOrganizationsByVolunteer = async (volunteerId) => {
         WHERE r.volunteer_id = $1 AND r.status = 'accepted'
     `, [volunteerId]);
 };
+
+export const getUserProfile = async (userId) => {
+    const result = await pool.query(
+        "SELECT id, name, email, role, created_at FROM users WHERE id = $1",
+        [userId]
+    );
+    return result.rows[0];
+};
