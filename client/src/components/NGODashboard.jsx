@@ -15,9 +15,9 @@ export default function NGODashboard({ token }) {
             const headers = { 'Authorization': `Bearer ${token}` };
             
             const [surveyRes, taskRes, volRes] = await Promise.all([
-                fetch('http://localhost:5000/api/dashboard/ngo', { headers }),
-                fetch('http://localhost:5000/api/tasks', { headers }),
-                fetch('http://localhost:5000/api/volunteers', { headers }).catch(() => ({ json: () => [] })) 
+                fetch('https://paperlesspulse.onrender.com/api/dashboard/ngo', { headers }),
+                fetch('https://paperlesspulse.onrender.com/api/tasks', { headers }),
+                fetch('https://paperlesspulse.onrender.com/api/volunteers', { headers }).catch(() => ({ json: () => [] })) 
             ]);
 
             const surveyData = await surveyRes.json();
@@ -37,7 +37,7 @@ export default function NGODashboard({ token }) {
   // Logic to Ping the Volunteer's Bell Icon
   const handleInvite = async (volunteerId, volunteerName) => {
     try {
-        const response = await fetch('http://localhost:5000/api/invite', {
+        const response = await fetch('https://paperlesspulse.onrender.com/api/invite', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ export default function NGODashboard({ token }) {
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-        const response = await fetch('http://localhost:5000/api/tasks', {
+        const response = await fetch('https://paperlesspulse.onrender.com/api/tasks', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export default function NGODashboard({ token }) {
   const handleDeleteTask = async (taskId) => {
     if (window.confirm("Delete this assignment?")) {
         try {
-            await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+            await fetch(`https://paperlesspulse.onrender.com/api/tasks/${taskId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

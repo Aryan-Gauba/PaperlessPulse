@@ -32,7 +32,7 @@ export default function VolunteerDashboard() {
     setAvailableTasks(availableTasks.filter(t => t.id !== task.id));
 
     try {
-      await fetch(`http://localhost:5000/api/tasks/${task.id}/status`, {
+      await fetch(`https://paperlesspulse.onrender.com/api/tasks/${task.id}/status`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export default function VolunteerDashboard() {
     formData.append('document', file); 
 
     try {
-        const response = await fetch('http://localhost:5000/api/upload', {
+        const response = await fetch('https://paperlesspulse.onrender.com/api/upload', {
             method: 'POST',
             headers : {
               'Authorization': `Bearer ${getToken()}`
@@ -82,7 +82,7 @@ export default function VolunteerDashboard() {
 
   const fetchMyOrganizations = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/my-organizations', {
+      const response = await fetch('https://paperlesspulse.onrender.com/api/my-organizations', {
         headers: { 'Authorization': `Bearer ${getToken()}` } 
       });
       if(response.ok) {
@@ -96,7 +96,7 @@ export default function VolunteerDashboard() {
 
   const fetchAssignedTasks = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/tasks', {
+      const response = await fetch('https://paperlesspulse.onrender.com/api/tasks', {
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
       

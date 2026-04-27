@@ -6,7 +6,7 @@ const Header = ({ user, onLogout }) => {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/notifications', {
+      const response = await fetch('https://paperlesspulse.onrender.com/api/notifications', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();
@@ -24,7 +24,7 @@ const Header = ({ user, onLogout }) => {
 
   const handleInviteResponse = async (orgId, status) => {
     try {
-      const response = await fetch('http://localhost:5000/api/invite/respond', {
+      const response = await fetch('https://paperlesspulse.onrender.com/api/invite/respond', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

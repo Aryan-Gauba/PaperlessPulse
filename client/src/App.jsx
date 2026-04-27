@@ -181,7 +181,7 @@ export default function App() {
     const endpoint = isRegistering ? '/api/register' : '/api/login';
     
     try {
-      const res = await fetch(`http://localhost:5000${endpoint}`, {
+      const res = await fetch(`https://paperlesspulse.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
