@@ -19,7 +19,7 @@ export default function NGODashboard({ token }) {
                 fetch('https://paperlesspulse.onrender.com/api/dashboard/ngo', { headers }),
                 fetch('https://paperlesspulse.onrender.com/api/tasks', { headers }),
                 fetch('https://paperlesspulse.onrender.com/api/volunteers', { headers }).catch(() => ({ json: () => [] })),
-                fetch('http://localhost:5000/api/profile', { headers }) 
+                fetch('https://paperlesspulse.onrender.com/api/profile', { headers }) 
             ]);
 
             const surveyData = await surveyRes.json();
